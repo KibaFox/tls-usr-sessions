@@ -1,0 +1,26 @@
+syntax = "proto3";
+package pb;
+
+service Login {
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+
+  // CSR is the certificate signing request presented by the client to sign if
+  // the login succeds.
+  string csr = 3;
+}
+
+
+message LoginResponse {
+  // Cert is the signed certificate that the client must use for the
+  // authenticated user session in PEM format.
+  string cert = 1;
+
+  // Anchors contains the root anchors certificate(s) for the user session trust
+  // chain in PEM format.
+  string anchors = 2;
+}
