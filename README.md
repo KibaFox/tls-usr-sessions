@@ -80,9 +80,19 @@ In the other terminal, login to the server via:
 
 Enter some phony credentials.
 
+## Testing
+
+This project uses [Ginkgo](https://github.com/onsi/ginkgo) for testing.  To
+install, run:
+
+    go get -u github.com/onsi/ginkgo/ginkgo
+
+To run the tests, run:
+
+    make test
+
 ## TODO
 
-- Automated Tests
 - Generate a random password to check at the server
 - Server generates a self-signed CA cert
 - Client generates a key and CSR
