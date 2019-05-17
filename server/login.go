@@ -12,11 +12,13 @@ import (
 // server is used to implement pb.LoginServer
 type server struct{}
 
+// NewServer creates a new gRPC server.
 func NewServer() *server {
 	return &server{}
 }
 
-// SayHello implements pb.LoginServer
+// Login allows a user to start a session.  If the login succeds, then the
+// given CSR is signed and returned as a signed certificate.
 func (s *server) Login(
 	ctx context.Context, req *pb.LoginRequest,
 ) (resp *pb.LoginResponse, err error) {
