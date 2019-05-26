@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"path/filepath"
+	"time"
 
 	"github.com/KibaFox/tls-usr-sessions/pki"
 	. "github.com/onsi/ginkgo"
@@ -48,6 +49,7 @@ var _ = Describe("PKI", func() {
 
 		csr, err := x509.ParseCertificateRequest(blk.Bytes)
 		Expect(err).ToNot(HaveOccurred())
+		Expect(csr.SignatureAlgorithm).Should(Equal(x509.ECDSAWithSHA256))
 		Expect(csr.Subject.CommonName).Should(Equal("silly common name"))
 		Expect(csr.CheckSignature()).To(Succeed())
 		Expect(csr.PublicKey).Should(Equal(&key.PublicKey))
@@ -57,7 +59,36 @@ var _ = Describe("PKI", func() {
 		// TODO
 	})
 
-	PIt("Can create a self-signed certificate", func() {
-		// TODO
+	It("Can create a self-signed certificate", func() {
+		key, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+
+		certPEM, err := pki.SelfSign(key, "good authority")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(certPEM).ToNot(BeEmpty())
+
+		blk, _ := pem.Decode([]byte(certPEM))
+		Expect(blk).ToNot(BeNil())
+		Expect(blk.Type).Should(Equal("CERTIFICATE"))
+
+		cert, err := x509.ParseCertificate(blk.Bytes)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(cert.Subject.CommonName).Should(Equal("good authority"))
+		Expect(cert.SignatureAlgorithm).Should(Equal(x509.ECDSAWithSHA256))
+		Expect(cert.IsCA).Should(BeTrue(), "self-signed cert should be CA")
+		Expect(cert.MaxPathLen).Should(BeZero())
+		Expect(cert.MaxPathLenZero).Should(BeTrue())
+		Expect(cert.KeyUsage).Should(Equal(
+			x509.KeyUsageKeyEncipherment |
+				x509.KeyUsageDigitalSignature |
+				x509.KeyUsageCertSign))
+		Expect(cert.ExtKeyUsage).Should(Equal([]x509.ExtKeyUsage{
+			x509.ExtKeyUsageClientAuth,
+			x509.ExtKeyUsageServerAuth,
+		}))
+		Expect(cert.NotBefore).Should(
+			BeTemporally("~", time.Now(), time.Second))
+		Expect(cert.NotAfter).Should(
+			BeTemporally("~", time.Now().AddDate(5, 0, 0), time.Second))
 	})
 })

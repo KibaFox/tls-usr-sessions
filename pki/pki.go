@@ -8,9 +8,17 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"io/ioutil"
+	"math/big"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
+)
+
+const (
+	keyPEMtype  = "EC PRIVATE KEY"
+	csrPEMtype  = "CERTIFICATE REQUEST"
+	certPEMtype = "CERTIFICATE"
 )
 
 // GenerateKey will generate a new ECDSA private key.
@@ -37,7 +45,7 @@ func SaveKey(key *ecdsa.PrivateKey, path string) (err error) {
 	defer f.Close()
 
 	blk := &pem.Block{
-		Type:  "EC PRIVATE KEY",
+		Type:  keyPEMtype,
 		Bytes: byt,
 	}
 
@@ -61,7 +69,7 @@ func LoadKey(path string) (key *ecdsa.PrivateKey, err error) {
 	if blk == nil {
 		return nil, errors.New("could not find PEM")
 	}
-	if blk.Type != "EC PRIVATE KEY" {
+	if blk.Type != keyPEMtype {
 		return nil, errors.New("file does not contain: EC Private Key")
 	}
 
@@ -89,7 +97,7 @@ func NewCSR(key *ecdsa.PrivateKey, cn string) (csrPEM string, err error) {
 	}
 
 	blk := &pem.Block{
-		Type:  "CERTIFICATE REQUEST",
+		Type:  csrPEMtype,
 		Bytes: byt,
 	}
 	return string(pem.EncodeToMemory(blk)), nil
@@ -102,7 +110,7 @@ func SignCSR(
 	if blk == nil {
 		return "", errors.New("could not find PEM")
 	}
-	if blk.Type != "CERTIFICATE REQUEST" {
+	if blk.Type != csrPEMtype {
 		return "", errors.New("PEM is not a certificate request")
 	}
 
@@ -119,6 +127,7 @@ func SignCSR(
 	tmpl := &x509.Certificate{
 		SignatureAlgorithm: csr.SignatureAlgorithm,
 		Subject:            csr.Subject,
+		IsCA:               false,
 	}
 	byt, err := x509.CreateCertificate(
 		rand.Reader, tmpl, parent, csr.PublicKey, key)
@@ -127,14 +136,51 @@ func SignCSR(
 	}
 
 	blk = &pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  certPEMtype,
 		Bytes: byt,
 	}
 	return string(pem.EncodeToMemory(blk)), nil
 }
 
-// TODO
-func SelfSign(key *ecdsa.PrivateKey) (certPEM string, err error) {
-	// TODO
-	return "", nil
+// SelfSign will create a new self signed CA certificate with the given key and
+// common name (CN).
+func SelfSign(key *ecdsa.PrivateKey, cn string) (certPEM string, err error) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return "", errors.Wrap(err, "generating serial number")
+	}
+
+	tmpl := x509.Certificate{
+		SerialNumber:       serialNumber,
+		SignatureAlgorithm: x509.ECDSAWithSHA256,
+		Subject: pkix.Name{
+			CommonName: cn,
+		},
+		NotBefore:      time.Now(),
+		NotAfter:       time.Now().AddDate(5, 0, 0), // years
+		IsCA:           true,
+		MaxPathLen:     0,
+		MaxPathLenZero: true,
+		KeyUsage: x509.KeyUsageKeyEncipherment |
+			x509.KeyUsageDigitalSignature |
+			x509.KeyUsageCertSign,
+		ExtKeyUsage: []x509.ExtKeyUsage{
+			x509.ExtKeyUsageClientAuth,
+			x509.ExtKeyUsageServerAuth,
+		},
+		BasicConstraintsValid: true,
+	}
+
+	byt, err := x509.CreateCertificate(
+		rand.Reader, &tmpl, &tmpl, &key.PublicKey, key)
+	if err != nil {
+		return "", errors.Wrap(err, "creating self-signed certificate")
+	}
+
+	blk := &pem.Block{
+		Type:  certPEMtype,
+		Bytes: byt,
+	}
+	return string(pem.EncodeToMemory(blk)), nil
 }
