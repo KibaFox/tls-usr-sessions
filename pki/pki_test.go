@@ -55,10 +55,6 @@ var _ = Describe("PKI", func() {
 		Expect(csr.PublicKey).Should(Equal(&key.PublicKey))
 	})
 
-	PIt("Can sign a CSR", func() {
-		// TODO
-	})
-
 	It("Can create a self-signed certificate", func() {
 		key, err := pki.GenerateKey()
 		Expect(err).ToNot(HaveOccurred())
@@ -90,5 +86,52 @@ var _ = Describe("PKI", func() {
 			BeTemporally("~", time.Now(), time.Second))
 		Expect(cert.NotAfter).Should(
 			BeTemporally("~", time.Now().AddDate(5, 0, 0), time.Second))
+	})
+
+	FIt("Can sign a CSR", func() {
+		By("Generating a new server key")
+		srvKey, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Self signing a server CA certificate")
+		srvCertPEM, err := pki.SelfSign(srvKey, "server")
+		Expect(err).ToNot(HaveOccurred())
+
+		blk, _ := pem.Decode([]byte(srvCertPEM))
+		Expect(blk).ToNot(BeNil())
+		srvCert, err := x509.ParseCertificate(blk.Bytes)
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Generating a new client key")
+		cliKey, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Creating a new CSR for the client")
+		csrPEM, err := pki.NewCSR(cliKey, "client")
+		Expect(err).ToNot(HaveOccurred())
+
+		By("Signing the CSR")
+		ttl := 5 * 24 * time.Hour
+		cliCertPEM, err := pki.SignCSR(srvKey, srvCert, csrPEM, ttl)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(cliCertPEM).ToNot(BeEmpty())
+
+		blk, _ = pem.Decode([]byte(cliCertPEM))
+		Expect(blk).ToNot(BeNil())
+		cliCert, err := x509.ParseCertificate(blk.Bytes)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(cliCert.Subject.CommonName).Should(Equal("client"))
+		Expect(cliCert.IsCA).Should(BeFalse(), "client cert should not be CA")
+		Expect(cliCert.MaxPathLen).Should(BeZero())
+		Expect(cliCert.MaxPathLenZero).Should(BeTrue())
+		Expect(cliCert.KeyUsage).Should(Equal(
+			x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature))
+		Expect(cliCert.ExtKeyUsage).Should(Equal([]x509.ExtKeyUsage{
+			x509.ExtKeyUsageClientAuth,
+		}))
+		Expect(cliCert.NotBefore).Should(
+			BeTemporally("~", time.Now(), time.Second))
+		Expect(cliCert.NotAfter).Should(
+			BeTemporally("~", time.Now().AddDate(0, 0, 5), time.Second))
 	})
 })

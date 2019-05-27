@@ -104,7 +104,10 @@ func NewCSR(key *ecdsa.PrivateKey, cn string) (csrPEM string, err error) {
 }
 
 func SignCSR(
-	key *ecdsa.PrivateKey, parent *x509.Certificate, csrPEM string,
+	key *ecdsa.PrivateKey,
+	parent *x509.Certificate,
+	csrPEM string,
+	ttl time.Duration,
 ) (certPEM string, err error) {
 	blk, _ := pem.Decode([]byte(csrPEM))
 	if blk == nil {
@@ -124,10 +127,24 @@ func SignCSR(
 		return "", errors.Wrap(err, "checking CSR signature")
 	}
 
+	serialNumber, err := newSerial()
+	if err != nil {
+		return "", errors.Wrap(err, "generating serial number")
+	}
+
 	tmpl := &x509.Certificate{
-		SignatureAlgorithm: csr.SignatureAlgorithm,
-		Subject:            csr.Subject,
-		IsCA:               false,
+		SerialNumber:          serialNumber,
+		SignatureAlgorithm:    csr.SignatureAlgorithm,
+		Subject:               csr.Subject,
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(ttl),
+		IsCA:                  false,
+		MaxPathLen:            0,
+		MaxPathLenZero:        true,
+		BasicConstraintsValid: true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		KeyUsage: x509.KeyUsageKeyEncipherment |
+			x509.KeyUsageDigitalSignature,
 	}
 	byt, err := x509.CreateCertificate(
 		rand.Reader, tmpl, parent, csr.PublicKey, key)
@@ -145,8 +162,9 @@ func SignCSR(
 // SelfSign will create a new self signed CA certificate with the given key and
 // common name (CN).
 func SelfSign(key *ecdsa.PrivateKey, cn string) (certPEM string, err error) {
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	// Template and serial number inspired from:
+	// https://golang.org/src/crypto/tls/generate_cert.go
+	serialNumber, err := newSerial()
 	if err != nil {
 		return "", errors.Wrap(err, "generating serial number")
 	}
@@ -183,4 +201,10 @@ func SelfSign(key *ecdsa.PrivateKey, cn string) (certPEM string, err error) {
 		Bytes: byt,
 	}
 	return string(pem.EncodeToMemory(blk)), nil
+}
+
+var serialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
+
+func newSerial() (serial *big.Int, err error) {
+	return rand.Int(rand.Reader, serialNumberLimit)
 }
