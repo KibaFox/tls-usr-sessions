@@ -88,7 +88,7 @@ var _ = Describe("PKI", func() {
 			BeTemporally("~", time.Now().AddDate(5, 0, 0), time.Second))
 	})
 
-	FIt("Can sign a CSR", func() {
+	It("Can sign a CSR", func() {
 		By("Generating a new server key")
 		srvKey, err := pki.GenerateKey()
 		Expect(err).ToNot(HaveOccurred())
@@ -133,5 +133,32 @@ var _ = Describe("PKI", func() {
 			BeTemporally("~", time.Now(), time.Second))
 		Expect(cliCert.NotAfter).Should(
 			BeTemporally("~", time.Now().AddDate(0, 0, 5), time.Second))
+	})
+
+	It("can save + load a certificate", func() {
+		dir := tmpDir()
+		defer rmDir(dir)
+		file := filepath.Join(dir, "mycert.pem")
+
+		key, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+
+		certPEM, err := pki.SelfSign(key, "server")
+		Expect(err).ToNot(HaveOccurred())
+
+		blk, _ := pem.Decode([]byte(certPEM))
+		Expect(blk).ToNot(BeNil())
+		Expect(blk.Type).Should(Equal("CERTIFICATE"))
+
+		cert, err := x509.ParseCertificate(blk.Bytes)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = pki.SaveCert(certPEM, file)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(file).Should(BeARegularFile())
+
+		loadedCert, err := pki.LoadCert(file)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(loadedCert).Should(Equal(cert))
 	})
 })

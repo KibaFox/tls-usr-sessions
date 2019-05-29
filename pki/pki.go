@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -70,7 +71,7 @@ func LoadKey(path string) (key *ecdsa.PrivateKey, err error) {
 		return nil, errors.New("could not find PEM")
 	}
 	if blk.Type != keyPEMtype {
-		return nil, errors.New("file does not contain: EC Private Key")
+		return nil, fmt.Errorf("PEM is not of type: %s", keyPEMtype)
 	}
 
 	key, err = x509.ParseECPrivateKey(blk.Bytes)
@@ -201,6 +202,37 @@ func SelfSign(key *ecdsa.PrivateKey, cn string) (certPEM string, err error) {
 		Bytes: byt,
 	}
 	return string(pem.EncodeToMemory(blk)), nil
+}
+
+// SaveCert saves a certificate in PEM format to a file.
+func SaveCert(certPEM string, path string) (err error) {
+	err = ioutil.WriteFile(path, []byte(certPEM), 0666)
+	if err != nil {
+		return errors.Wrap(err, "saving certificate")
+	}
+	return nil
+}
+
+func LoadCert(path string) (cert *x509.Certificate, err error) {
+	raw, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "reading certificate file")
+	}
+
+	blk, _ := pem.Decode(raw)
+	if blk == nil {
+		return nil, errors.New("could not find PEM")
+	}
+	if blk.Type != certPEMtype {
+		return nil, fmt.Errorf("PEM is not of type: %s", certPEMtype)
+	}
+
+	cert, err = x509.ParseCertificate(blk.Bytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "parsing x509 certificate")
+	}
+
+	return cert, nil
 }
 
 var serialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
