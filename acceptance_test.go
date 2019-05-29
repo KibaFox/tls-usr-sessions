@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
@@ -20,7 +21,7 @@ var _ = Describe("Acceptance", func() {
 		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
 		defer conn.Close()
 
-		cli := pb.NewLoginClient(conn)
+		cli := pb.NewDemoClient(conn)
 		ctx, cancel := context.WithTimeout(
 			context.Background(), time.Second)
 		defer cancel()
@@ -42,7 +43,7 @@ var _ = Describe("Acceptance", func() {
 		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
 		defer conn.Close()
 
-		cli := pb.NewLoginClient(conn)
+		cli := pb.NewDemoClient(conn)
 		ctx, cancel := context.WithTimeout(
 			context.Background(), time.Second)
 		defer cancel()
@@ -63,7 +64,7 @@ var _ = Describe("Acceptance", func() {
 		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
 		defer conn.Close()
 
-		cli := pb.NewLoginClient(conn)
+		cli := pb.NewDemoClient(conn)
 		ctx, cancel := context.WithTimeout(
 			context.Background(), time.Second)
 		defer cancel()
@@ -77,5 +78,20 @@ var _ = Describe("Acceptance", func() {
 		Expect(err).ToNot(HaveOccurred(), "problem logging in")
 
 		Expect(resp.Cert).Should(Equal("Got here!"))
+	})
+
+	It("should allow retrieval of the MOTD", func() {
+		conn, err := grpc.Dial(addr, grpc.WithInsecure())
+		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
+		defer conn.Close()
+
+		cli := pb.NewDemoClient(conn)
+		ctx, cancel := context.WithTimeout(
+			context.Background(), time.Second)
+		defer cancel()
+
+		resp, err := cli.MOTD(ctx, &empty.Empty{})
+		Expect(err).ToNot(HaveOccurred(), "problem getting MOTD")
+		Expect(resp.Bulletin).Should(Equal("Hello and welcome!"))
 	})
 })

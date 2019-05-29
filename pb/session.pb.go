@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -132,26 +133,71 @@ func (m *LoginResponse) GetAnchors() string {
 	return ""
 }
 
+type Bulletin struct {
+	Bulletin             string   `protobuf:"bytes,1,opt,name=bulletin,proto3" json:"bulletin,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Bulletin) Reset()         { *m = Bulletin{} }
+func (m *Bulletin) String() string { return proto.CompactTextString(m) }
+func (*Bulletin) ProtoMessage()    {}
+func (*Bulletin) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3a6be1b361fa6f14, []int{2}
+}
+
+func (m *Bulletin) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Bulletin.Unmarshal(m, b)
+}
+func (m *Bulletin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Bulletin.Marshal(b, m, deterministic)
+}
+func (m *Bulletin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Bulletin.Merge(m, src)
+}
+func (m *Bulletin) XXX_Size() int {
+	return xxx_messageInfo_Bulletin.Size(m)
+}
+func (m *Bulletin) XXX_DiscardUnknown() {
+	xxx_messageInfo_Bulletin.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Bulletin proto.InternalMessageInfo
+
+func (m *Bulletin) GetBulletin() string {
+	if m != nil {
+		return m.Bulletin
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*LoginRequest)(nil), "pb.LoginRequest")
 	proto.RegisterType((*LoginResponse)(nil), "pb.LoginResponse")
+	proto.RegisterType((*Bulletin)(nil), "pb.Bulletin")
 }
 
 func init() { proto.RegisterFile("session.proto", fileDescriptor_3a6be1b361fa6f14) }
 
 var fileDescriptor_3a6be1b361fa6f14 = []byte{
-	// 176 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x8f, 0x3d, 0xcf, 0x82, 0x40,
-	0x0c, 0xc7, 0x1f, 0xe0, 0xf1, 0xad, 0x91, 0x04, 0x3b, 0x5d, 0x98, 0x0c, 0x93, 0xd3, 0x0d, 0x3a,
-	0x38, 0xf9, 0x0d, 0x9c, 0x98, 0x5c, 0x01, 0x1b, 0x65, 0xf0, 0x7a, 0x5e, 0x21, 0x7e, 0x7d, 0xc3,
-	0xc1, 0x19, 0xb6, 0xff, 0x4b, 0xfa, 0x6b, 0x0b, 0xa9, 0x90, 0x48, 0xcb, 0x46, 0x5b, 0xc7, 0x1d,
-	0x63, 0x6c, 0xeb, 0xe2, 0x06, 0xdb, 0x2b, 0x3f, 0x5a, 0x53, 0xd2, 0xbb, 0x27, 0xe9, 0x30, 0x87,
-	0x75, 0x2f, 0xe4, 0x4c, 0xf5, 0x22, 0x15, 0xed, 0xa3, 0xc3, 0xa6, 0xfc, 0xf9, 0xa1, 0xb3, 0x95,
-	0xc8, 0x87, 0xdd, 0x5d, 0xc5, 0x63, 0x17, 0x3c, 0x66, 0x90, 0x34, 0xe2, 0x54, 0xe2, 0xe3, 0x41,
-	0x16, 0x17, 0x48, 0x27, 0xb2, 0x58, 0x36, 0x42, 0x88, 0xf0, 0xdf, 0x90, 0xeb, 0x26, 0xac, 0xd7,
-	0xa8, 0x60, 0x55, 0x99, 0xe6, 0xc9, 0x4e, 0x26, 0x62, 0xb0, 0xc7, 0x33, 0x2c, 0xfc, 0x38, 0xea,
-	0x20, 0x32, 0x6d, 0x6b, 0x3d, 0x3f, 0x36, 0xdf, 0xcd, 0x92, 0x71, 0x49, 0xf1, 0x57, 0x2f, 0xfd,
-	0x73, 0xa7, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x17, 0xba, 0x0f, 0x38, 0xed, 0x00, 0x00, 0x00,
+	// 244 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x50, 0xbd, 0x4b, 0xfc, 0x40,
+	0x10, 0xbd, 0x8f, 0xfc, 0x7e, 0x9e, 0xc3, 0x1d, 0x9c, 0x53, 0x48, 0x88, 0x8d, 0xa4, 0x10, 0xab,
+	0x3d, 0xd0, 0xda, 0x46, 0xce, 0x4e, 0x11, 0x0e, 0x0b, 0xdb, 0x6c, 0x9c, 0x8b, 0x81, 0x64, 0x67,
+	0xdd, 0xd9, 0x20, 0xfe, 0xf7, 0xb2, 0x9b, 0xac, 0x5c, 0xf7, 0x3e, 0x92, 0x37, 0x6f, 0x1f, 0x6c,
+	0x84, 0x44, 0x5a, 0x36, 0xca, 0x3a, 0xf6, 0x8c, 0x0b, 0xab, 0x8b, 0xab, 0x86, 0xb9, 0xe9, 0x68,
+	0x17, 0x15, 0x3d, 0x1c, 0x77, 0xd4, 0x5b, 0xff, 0x33, 0x7e, 0x50, 0xbe, 0xc3, 0xfa, 0x99, 0x9b,
+	0xd6, 0x1c, 0xe8, 0x6b, 0x20, 0xf1, 0x58, 0xc0, 0x6a, 0x10, 0x72, 0xa6, 0xea, 0x29, 0x9f, 0x5f,
+	0xcf, 0x6f, 0xcf, 0x0f, 0x7f, 0x3c, 0x78, 0xb6, 0x12, 0xf9, 0x66, 0xf7, 0x91, 0x2f, 0x46, 0x2f,
+	0x71, 0xdc, 0xc2, 0xb2, 0x16, 0x97, 0x2f, 0xa3, 0x1c, 0x60, 0xf9, 0x00, 0x9b, 0x29, 0x59, 0x2c,
+	0x1b, 0x21, 0x44, 0xc8, 0x6a, 0x72, 0x7e, 0x8a, 0x8d, 0x18, 0x73, 0x38, 0xab, 0x4c, 0xfd, 0xc9,
+	0x4e, 0xa6, 0xc4, 0x44, 0xcb, 0x1b, 0x58, 0x3d, 0x0e, 0x5d, 0x47, 0xbe, 0x35, 0xe1, 0xb0, 0x9e,
+	0x70, 0x2a, 0x95, 0xf8, 0xdd, 0x11, 0xb2, 0x3d, 0xf5, 0x8c, 0x0a, 0xfe, 0xc5, 0x73, 0xb8, 0x55,
+	0x56, 0xab, 0xd3, 0x37, 0x15, 0x17, 0x27, 0xca, 0xd8, 0xa5, 0x9c, 0xa1, 0x82, 0xec, 0xe5, 0xf5,
+	0x6d, 0x8f, 0x97, 0x6a, 0x9c, 0x47, 0xa5, 0x79, 0xd4, 0x53, 0x98, 0xa7, 0x58, 0x87, 0x9f, 0x52,
+	0x83, 0x72, 0xa6, 0xff, 0x47, 0xff, 0xfe, 0x37, 0x00, 0x00, 0xff, 0xff, 0x58, 0x93, 0xab, 0x22,
+	0x61, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -162,72 +208,108 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// LoginClient is the client API for Login service.
+// DemoClient is the client API for Demo service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type LoginClient interface {
+type DemoClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	MOTD(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Bulletin, error)
 }
 
-type loginClient struct {
+type demoClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewLoginClient(cc *grpc.ClientConn) LoginClient {
-	return &loginClient{cc}
+func NewDemoClient(cc *grpc.ClientConn) DemoClient {
+	return &demoClient{cc}
 }
 
-func (c *loginClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+func (c *demoClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 	out := new(LoginResponse)
-	err := c.cc.Invoke(ctx, "/pb.Login/Login", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.Demo/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// LoginServer is the server API for Login service.
-type LoginServer interface {
+func (c *demoClient) MOTD(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Bulletin, error) {
+	out := new(Bulletin)
+	err := c.cc.Invoke(ctx, "/pb.Demo/MOTD", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DemoServer is the server API for Demo service.
+type DemoServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	MOTD(context.Context, *empty.Empty) (*Bulletin, error)
 }
 
-// UnimplementedLoginServer can be embedded to have forward compatible implementations.
-type UnimplementedLoginServer struct {
+// UnimplementedDemoServer can be embedded to have forward compatible implementations.
+type UnimplementedDemoServer struct {
 }
 
-func (*UnimplementedLoginServer) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
+func (*UnimplementedDemoServer) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-
-func RegisterLoginServer(s *grpc.Server, srv LoginServer) {
-	s.RegisterService(&_Login_serviceDesc, srv)
+func (*UnimplementedDemoServer) MOTD(ctx context.Context, req *empty.Empty) (*Bulletin, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MOTD not implemented")
 }
 
-func _Login_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func RegisterDemoServer(s *grpc.Server, srv DemoServer) {
+	s.RegisterService(&_Demo_serviceDesc, srv)
+}
+
+func _Demo_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LoginServer).Login(ctx, in)
+		return srv.(DemoServer).Login(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.Login/Login",
+		FullMethod: "/pb.Demo/Login",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoginServer).Login(ctx, req.(*LoginRequest))
+		return srv.(DemoServer).Login(ctx, req.(*LoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Login_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.Login",
-	HandlerType: (*LoginServer)(nil),
+func _Demo_MOTD_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DemoServer).MOTD(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Demo/MOTD",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DemoServer).MOTD(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Demo_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.Demo",
+	HandlerType: (*DemoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Login",
-			Handler:    _Login_Login_Handler,
+			Handler:    _Demo_Login_Handler,
+		},
+		{
+			MethodName: "MOTD",
+			Handler:    _Demo_MOTD_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

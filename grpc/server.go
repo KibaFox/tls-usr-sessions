@@ -1,10 +1,11 @@
-package server
+package grpc
 
 import (
 	"context"
 	"log"
 
 	"github.com/KibaFox/tls-usr-sessions/pb"
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -31,4 +32,14 @@ func (s *server) Login(
 	}
 	log.Printf("Received: %v", req)
 	return &pb.LoginResponse{Cert: "Got here!"}, nil
+}
+
+func (s *server) MOTD(
+	ctx context.Context, req *empty.Empty,
+) (resp *pb.Bulletin, err error) {
+	resp = &pb.Bulletin{
+		Bulletin: "Hello and welcome!",
+	}
+
+	return resp, nil
 }

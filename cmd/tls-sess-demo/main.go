@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	srv "github.com/KibaFox/tls-usr-sessions/grpc"
 	"github.com/KibaFox/tls-usr-sessions/pb"
-	"github.com/KibaFox/tls-usr-sessions/server"
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc"
 )
@@ -49,7 +49,7 @@ func main() {
 		}
 		log.Println("Listening at:", lis.Addr())
 		s := grpc.NewServer()
-		pb.RegisterLoginServer(s, server.NewServer())
+		pb.RegisterDemoServer(s, srv.NewServer())
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
@@ -69,7 +69,7 @@ func main() {
 			log.Fatalf("did not connect: %v", err)
 		}
 		defer conn.Close()
-		c := pb.NewLoginClient(conn)
+		c := pb.NewDemoClient(conn)
 		ctx, cancel := context.WithTimeout(
 			context.Background(), time.Second)
 		defer cancel()

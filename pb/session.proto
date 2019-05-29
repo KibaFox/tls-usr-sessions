@@ -1,8 +1,11 @@
 syntax = "proto3";
 package pb;
 
-service Login {
+import "google/protobuf/empty.proto";
+
+service Demo {
   rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc MOTD(google.protobuf.Empty) returns (Bulletin) {}
 }
 
 message LoginRequest {
@@ -23,4 +26,8 @@ message LoginResponse {
   // Anchors contains the root anchors certificate(s) for the user session trust
   // chain in PEM format.
   string anchors = 2;
+}
+
+message Bulletin {
+  string bulletin = 1;
 }
