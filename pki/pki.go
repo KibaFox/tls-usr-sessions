@@ -235,8 +235,7 @@ func LoadCert(path string) (cert *x509.Certificate, err error) {
 	return cert, nil
 }
 
-var serialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
-
 func newSerial() (serial *big.Int, err error) {
+	var serialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
 	return rand.Int(rand.Reader, serialNumberLimit)
 }

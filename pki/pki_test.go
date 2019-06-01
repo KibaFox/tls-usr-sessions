@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/KibaFox/tls-usr-sessions/pki"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/KibaFox/tls-usr-sessions/pki"
 )
 
 var _ = Describe("PKI", func() {

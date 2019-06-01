@@ -12,10 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	srv "github.com/KibaFox/tls-usr-sessions/grpc"
-	"github.com/KibaFox/tls-usr-sessions/pb"
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc"
+
+	srv "github.com/KibaFox/tls-usr-sessions/grpc"
+	"github.com/KibaFox/tls-usr-sessions/pb"
 )
 
 const usage = `tls-sess-demo: A demo of using TLS for user sessions
@@ -96,7 +97,7 @@ func credentials() (string, string) {
 	username, _ := reader.ReadString('\n')
 
 	fmt.Print("Enter Password: ")
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	if err != nil {
 		log.Fatalf("could not read password: %v", err)
 	}

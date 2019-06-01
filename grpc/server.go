@@ -4,23 +4,24 @@ import (
 	"context"
 	"log"
 
-	"github.com/KibaFox/tls-usr-sessions/pb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/KibaFox/tls-usr-sessions/pb"
 )
 
-// server is used to implement pb.LoginServer
-type server struct{}
+// Server is used to implement pb.LoginServer
+type Server struct{}
 
 // NewServer creates a new gRPC server.
-func NewServer() *server {
-	return &server{}
+func NewServer() *Server {
+	return &Server{}
 }
 
-// Login allows a user to start a session.  If the login succeds, then the
+// Login allows a user to start a session.  If the login succeeds, then the
 // given CSR is signed and returned as a signed certificate.
-func (s *server) Login(
+func (s *Server) Login(
 	ctx context.Context, req *pb.LoginRequest,
 ) (resp *pb.LoginResponse, err error) {
 	if req.Csr == "" {
@@ -34,7 +35,7 @@ func (s *server) Login(
 	return &pb.LoginResponse{Cert: "Got here!"}, nil
 }
 
-func (s *server) MOTD(
+func (s *Server) MOTD(
 	ctx context.Context, req *empty.Empty,
 ) (resp *pb.Bulletin, err error) {
 	resp = &pb.Bulletin{
