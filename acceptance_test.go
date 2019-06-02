@@ -7,7 +7,6 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -17,15 +16,13 @@ import (
 var _ = Describe("Acceptance", func() {
 
 	It("Requires a CSR at login", func() {
-		conn, err := grpc.Dial(addr, grpc.WithInsecure())
-		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
+		cli, conn := authCli()
 		defer conn.Close()
 
-		cli := pb.NewDemoClient(conn)
-		ctx, cancel := context.WithTimeout(
-			context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
+		var err error
 		By("Requesting login without a CSR")
 		_, err = cli.Login(ctx, &pb.LoginRequest{
 			Username: "demo",
@@ -39,15 +36,13 @@ var _ = Describe("Acceptance", func() {
 	})
 
 	It("Should require username and password", func() {
-		conn, err := grpc.Dial(addr, grpc.WithInsecure())
-		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
+		cli, conn := authCli()
 		defer conn.Close()
 
-		cli := pb.NewDemoClient(conn)
-		ctx, cancel := context.WithTimeout(
-			context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
+		var err error
 		By("Requesting login without a CSR")
 		_, err = cli.Login(ctx, &pb.LoginRequest{
 			Csr: "-",
@@ -60,13 +55,10 @@ var _ = Describe("Acceptance", func() {
 	})
 
 	It("Should allow login", func() {
-		conn, err := grpc.Dial(addr, grpc.WithInsecure())
-		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
+		cli, conn := authCli()
 		defer conn.Close()
 
-		cli := pb.NewDemoClient(conn)
-		ctx, cancel := context.WithTimeout(
-			context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
 		resp, err := cli.Login(ctx, &pb.LoginRequest{
@@ -81,13 +73,10 @@ var _ = Describe("Acceptance", func() {
 	})
 
 	It("should allow retrieval of the MOTD", func() {
-		conn, err := grpc.Dial(addr, grpc.WithInsecure())
-		Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
+		cli, conn := protectedCli()
 		defer conn.Close()
 
-		cli := pb.NewDemoClient(conn)
-		ctx, cancel := context.WithTimeout(
-			context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
 		resp, err := cli.MOTD(ctx, &empty.Empty{})

@@ -1,11 +1,8 @@
 syntax = "proto3";
 package pb;
 
-import "google/protobuf/empty.proto";
-
-service Demo {
+service Auth {
   rpc Login(LoginRequest) returns (LoginResponse) {}
-  rpc MOTD(google.protobuf.Empty) returns (Bulletin) {}
 }
 
 message LoginRequest {
@@ -17,7 +14,6 @@ message LoginRequest {
   string csr = 3;
 }
 
-
 message LoginResponse {
   // Cert is the signed certificate that the client must use for the
   // authenticated user session in PEM format.
@@ -26,8 +22,4 @@ message LoginResponse {
   // Anchors contains the root anchors certificate(s) for the user session trust
   // chain in PEM format.
   string anchors = 2;
-}
-
-message Bulletin {
-  string bulletin = 1;
 }

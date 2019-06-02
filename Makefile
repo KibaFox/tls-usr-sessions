@@ -20,8 +20,11 @@ lint:
 test:
 	ginkgo -v -r --randomizeAllSpecs --randomizeSuites --failOnPending
 
-pb/session.pb.go: pb/session.proto
-	protoc -I=pb --go_out=plugins=grpc:pb session.proto
+pb/auth.pb.go: pb/auth.proto
+	protoc -I=pb --go_out=plugins=grpc:pb auth.proto
+
+pb/protected.pb.go: pb/protected.proto
+	protoc -I=pb --go_out=plugins=grpc:pb protected.proto
 
 dist/tls-sess-demo: $(shell find . -name '*.go')
 	go build -o ./dist/tls-sess-demo ./cmd/tls-sess-demo

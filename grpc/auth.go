@@ -4,24 +4,23 @@ import (
 	"context"
 	"log"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/KibaFox/tls-usr-sessions/pb"
 )
 
-// Server is used to implement pb.LoginServer
-type Server struct{}
+// Auth is used to implement pb.AuthServer
+type Auth struct{}
 
-// NewServer creates a new gRPC server.
-func NewServer() *Server {
-	return &Server{}
+// NewAuth creates a new gRPC server.
+func NewAuth() *Auth {
+	return &Auth{}
 }
 
 // Login allows a user to start a session.  If the login succeeds, then the
 // given CSR is signed and returned as a signed certificate.
-func (s *Server) Login(
+func (s *Auth) Login(
 	ctx context.Context, req *pb.LoginRequest,
 ) (resp *pb.LoginResponse, err error) {
 	if req.Csr == "" {
@@ -33,14 +32,4 @@ func (s *Server) Login(
 	}
 	log.Printf("Received: %v", req)
 	return &pb.LoginResponse{Cert: "Got here!"}, nil
-}
-
-func (s *Server) MOTD(
-	ctx context.Context, req *empty.Empty,
-) (resp *pb.Bulletin, err error) {
-	resp = &pb.Bulletin{
-		Bulletin: "Hello and welcome!",
-	}
-
-	return resp, nil
 }

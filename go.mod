@@ -8,5 +8,6 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.20.1
 )

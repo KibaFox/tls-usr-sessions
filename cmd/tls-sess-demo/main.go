@@ -12,7 +12,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	srv "github.com/KibaFox/tls-usr-sessions/grpc"
@@ -38,21 +40,20 @@ func main() {
 	switch cmd {
 	case "serv":
 		opts := flag.NewFlagSet(cmd, flag.ExitOnError)
-		addr := opts.String("listen", "127.0.0.1:4443",
-			"the address to listen on")
+		authAddr := opts.String("auth", "127.0.0.1:4443",
+			"the address to listen on for login requests")
+		protectedAddr := opts.String("listen", "127.0.0.1:4444",
+			"the address to listen on for protected requests")
 		err := opts.Parse(os.Args[2:])
 		if err != nil {
 			log.Fatalf("could not parse options: %v", err)
 		}
-		lis, err := net.Listen("tcp", *addr)
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-		log.Println("Listening at:", lis.Addr())
-		s := grpc.NewServer()
-		pb.RegisterDemoServer(s, srv.NewServer())
-		if err := s.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+
+		var eg errgroup.Group
+		eg.Go(serveAuth(*authAddr))
+		eg.Go(serveProtected(*protectedAddr))
+		if err = eg.Wait(); err == nil {
+			log.Fatal(err)
 		}
 	case "login":
 		opts := flag.NewFlagSet(cmd, flag.ExitOnError)
@@ -62,26 +63,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("could not parse options: %v", err)
 		}
-		usr, pass := credentials()
 
-		// Set up a connection to the server.
-		conn, err := grpc.Dial(*addr, grpc.WithInsecure())
+		err = login(*addr)
 		if err != nil {
-			log.Fatalf("did not connect: %v", err)
+			log.Fatal(err)
 		}
-		defer conn.Close()
-		c := pb.NewDemoClient(conn)
-		ctx, cancel := context.WithTimeout(
-			context.Background(), time.Second)
-		defer cancel()
-		r, err := c.Login(ctx, &pb.LoginRequest{
-			Username: usr,
-			Password: pass,
-		})
-		if err != nil {
-			log.Fatalf("could not greet: %v", err)
-		}
-		log.Printf("Response: %v", r)
 
 	default:
 		fmt.Println(usage)
@@ -90,7 +76,7 @@ func main() {
 }
 
 // origin: https://stackoverflow.com/a/32768479
-func credentials() (string, string) {
+func userCredentials() (string, string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter Username: ")
@@ -104,4 +90,79 @@ func credentials() (string, string) {
 	password := string(bytePassword)
 
 	return strings.TrimSpace(username), strings.TrimSpace(password)
+}
+
+func serveAuth(addr string) func() error {
+	return func() (err error) {
+		var lis net.Listener
+		lis, err = net.Listen("tcp", addr)
+		if err != nil {
+			return errors.Wrap(err, "auth server failed to listen")
+		}
+		log.Println("Auth server listening at:", lis.Addr())
+
+		s := grpc.NewServer()
+		pb.RegisterAuthServer(s, srv.NewAuth())
+
+		err = s.Serve(lis)
+		if err != nil {
+			return errors.Wrap(err, "auth server")
+		}
+
+		return nil
+	}
+}
+
+func serveProtected(addr string) func() error {
+	return func() (err error) {
+		var lis net.Listener
+		lis, err = net.Listen("tcp", addr)
+		if err != nil {
+			return errors.Wrap(err, "protected server failed to listen")
+		}
+		log.Println("Protected server listening at:", lis.Addr())
+
+		/*
+			creds, _ := credentials.NewServerTLSFromFile(certFile, keyFile)
+			s := grpc.NewServer(grpc.Creds(creds))
+		*/
+		s := grpc.NewServer()
+		pb.RegisterProtectedServer(s, srv.NewProtected())
+
+		err = s.Serve(lis)
+		if err != nil {
+			return errors.Wrap(err, "protected server")
+		}
+
+		return nil
+	}
+}
+
+func login(addr string) error {
+	usr, pass := userCredentials()
+
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		return errors.Wrap(err, "cannot connect")
+	}
+	defer conn.Close()
+
+	c := pb.NewAuthClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := c.Login(ctx, &pb.LoginRequest{
+		Username: usr,
+		Password: pass,
+		Csr:      "-",
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "failed to login")
+	}
+
+	log.Printf("Response: %v", r)
+
+	return nil
 }

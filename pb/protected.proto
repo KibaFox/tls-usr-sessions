@@ -1,0 +1,12 @@
+syntax = "proto3";
+package pb;
+
+import "google/protobuf/empty.proto";
+
+service Protected {
+  rpc MOTD(google.protobuf.Empty) returns (Bulletin) {}
+}
+
+message Bulletin {
+  string bulletin = 1;
+}
