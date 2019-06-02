@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/sync/errgroup"
@@ -29,6 +30,7 @@ Where COMMAND is one of:
 
 serv    to act as a server
 login   to login to a server
+motd    to get the message-of-the-day from the server
 `
 
 func main() {
@@ -68,6 +70,21 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+	case "motd":
+		opts := flag.NewFlagSet(cmd, flag.ExitOnError)
+		addr := opts.String("connect", "127.0.0.1:4444",
+			"the address to connect to the server")
+		err := opts.Parse(os.Args[2:])
+		if err != nil {
+			log.Fatalf("could not parse options: %v", err)
+		}
+
+		msg, err := motd(*addr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(msg)
 
 	default:
 		fmt.Println(usage)
@@ -149,7 +166,7 @@ func login(addr string) error {
 	defer conn.Close()
 
 	c := pb.NewAuthClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	r, err := c.Login(ctx, &pb.LoginRequest{
@@ -165,4 +182,24 @@ func login(addr string) error {
 	log.Printf("Response: %v", r)
 
 	return nil
+}
+
+func motd(addr string) (msg string, err error) {
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		return "", errors.Wrap(err, "cannot connect")
+	}
+	defer conn.Close()
+
+	cli := pb.NewProtectedClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	resp, err := cli.MOTD(ctx, &empty.Empty{})
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get MOTD")
+	}
+
+	return resp.Bulletin, nil
 }

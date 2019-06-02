@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"log"
 
 	"github.com/golang/protobuf/ptypes/empty"
 
@@ -23,6 +24,6 @@ func (s *Protected) MOTD(
 	resp = &pb.Bulletin{
 		Bulletin: "Hello and welcome!",
 	}
-
+	log.Println("Received: request for MOTD")
 	return resp, nil
 }

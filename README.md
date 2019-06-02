@@ -82,6 +82,10 @@ In the other terminal, login to the server via:
 
 Enter some phony credentials.
 
+Then run the following to get the server's message-of-the-day:
+
+    ./dist/tls-sess-demo motd
+
 ## Testing
 
 This project uses [Ginkgo](https://github.com/onsi/ginkgo) for testing.  To
@@ -92,6 +96,17 @@ install, run:
 To run the tests, run:
 
     make test
+
+## Linting
+
+This project uses [golangci-lint](https://github.com/golangci/golangci-lint) for
+linting which performs static code analysis checks.  To install, run:
+
+    GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0
+
+To run linters, run:
+
+    make lint
 
 ## TODO
 
