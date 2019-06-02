@@ -22,6 +22,8 @@ The server generates a self-signed certificate certificate for itself to become
 a certificate authority (CA) for authenticated user sessions.  The client must
 include this certificate into its trusted chain upon login.
 
+![sequence diagram](./doc/sequence.svg)
+
 Not demonstrated:
 
 - Endpoints not requiring client cert use certificates from Let's Encrypt

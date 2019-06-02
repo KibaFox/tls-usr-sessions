@@ -28,3 +28,6 @@ pb/protected.pb.go: pb/protected.proto
 
 dist/tls-sess-demo: $(shell find . -name '*.go')
 	go build -o ./dist/tls-sess-demo ./cmd/tls-sess-demo
+
+doc/sequence.svg:
+	plantuml -tsvg doc/sequence.puml

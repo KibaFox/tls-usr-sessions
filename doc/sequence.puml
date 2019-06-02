@@ -1,0 +1,28 @@
+@startuml
+title TLS User Sessions w/ Mutual Auth Sequence
+
+actor User as usr
+entity "Client" as cli
+boundary "Authentication Service\n(port 4443)" as auth
+boundary "Protected Service\n(port 4444)" as protected
+
+== Login ==
+
+usr -> cli : Login w/ user + pass
+cli -> cli : Generate key + CSR
+cli -> auth : Request Login\nuser + pass + CSR
+auth -> auth : Verify login
+auth -> cli : Signed client cert + issuer cert
+cli -> cli : Save client + issuer cert
+cli -> usr : Login successful
+
+== User Session ==
+
+usr -> cli : Get MOTD
+cli -> cli : Load client cert\nfrom login
+cli -> protected : Connect w/ TLS mutual auth\nRequest MOTD
+protected -> protected : Verify client cert
+protected -> cli : MOTD response
+cli -> usr : MOTD
+
+@enduml
