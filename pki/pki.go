@@ -39,7 +39,7 @@ func SaveKey(key *ecdsa.PrivateKey, path string) (err error) {
 		return errors.Wrap(err, "marshalling key to save")
 	}
 
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return errors.Wrap(err, "opening file to save key")
 	}
@@ -213,13 +213,26 @@ func SaveCert(certPEM string, path string) (err error) {
 	return nil
 }
 
+// LoadCert loads a certificate in PEM format from a file.
 func LoadCert(path string) (cert *x509.Certificate, err error) {
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "reading certificate file")
 	}
 
-	blk, _ := pem.Decode(raw)
+	return PEMtoCert(string(raw))
+}
+
+func CertToPEM(cert *x509.Certificate) []byte {
+	blk := &pem.Block{
+		Type:  certPEMtype,
+		Bytes: cert.Raw,
+	}
+	return pem.EncodeToMemory(blk)
+}
+
+func PEMtoCert(certPEM string) (cert *x509.Certificate, err error) {
+	blk, _ := pem.Decode([]byte(certPEM))
 	if blk == nil {
 		return nil, errors.New("could not find PEM")
 	}

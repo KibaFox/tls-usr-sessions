@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/KibaFox/tls-usr-sessions/pb"
+	"github.com/KibaFox/tls-usr-sessions/pki"
 )
 
 var _ = Describe("Acceptance", func() {
@@ -61,15 +62,28 @@ var _ = Describe("Acceptance", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
+		cliKey, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+		csrPEM, err := pki.NewCSR(cliKey, "client")
+		Expect(err).ToNot(HaveOccurred())
+
 		resp, err := cli.Login(ctx, &pb.LoginRequest{
 			Username: "demo",
 			Password: "password123",
-			Csr:      "-",
+			Csr:      csrPEM,
 		})
 
 		Expect(err).ToNot(HaveOccurred(), "problem logging in")
 
-		Expect(resp.Cert).Should(Equal("Got here!"))
+		Expect(resp.Cert).ShouldNot(BeEmpty())
+		cert, err := pki.PEMtoCert(resp.Cert)
+		Expect(err).ToNot(HaveOccurred(), "problem loading cert")
+
+		Expect(resp.Anchors).ShouldNot(BeEmpty())
+		anchor, err := pki.PEMtoCert(resp.Anchors)
+		Expect(err).ToNot(HaveOccurred(), "problem loading anchor")
+
+		Expect(cert.Issuer).Should(Equal(anchor.Subject))
 	})
 
 	It("should allow retrieval of the MOTD", func() {

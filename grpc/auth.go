@@ -2,20 +2,33 @@ package grpc
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/x509"
 	"log"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/KibaFox/tls-usr-sessions/pb"
+	"github.com/KibaFox/tls-usr-sessions/pki"
 )
 
+type AuthConfig struct {
+	AnchorsPEM string
+	CA         *x509.Certificate
+	Key        *ecdsa.PrivateKey
+	UserTTL    time.Duration
+}
+
 // Auth is used to implement pb.AuthServer
-type Auth struct{}
+type Auth struct {
+	Config *AuthConfig
+}
 
 // NewAuth creates a new gRPC server.
-func NewAuth() *Auth {
-	return &Auth{}
+func NewAuth(config *AuthConfig) *Auth {
+	return &Auth{Config: config}
 }
 
 // Login allows a user to start a session.  If the login succeeds, then the
@@ -31,5 +44,12 @@ func (s *Auth) Login(
 			"username and password are required")
 	}
 	log.Printf("Received: %v", req)
-	return &pb.LoginResponse{Cert: "Got here!"}, nil
+
+	cert, err := pki.SignCSR(
+		s.Config.Key, s.Config.CA, req.Csr, s.Config.UserTTL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.LoginResponse{Cert: cert, Anchors: s.Config.AnchorsPEM}, nil
 }
