@@ -79,6 +79,11 @@ by running:
 In the other terminal, login to the server via:
 
     ./dist/tls-sess-demo login
+    Enter Username: demo
+    Enter Password: test123
+
+The username is `demo` and the password is `test123`.  Note that the password
+prompt will not display your password as you type.
 
 Enter some phony credentials.
 

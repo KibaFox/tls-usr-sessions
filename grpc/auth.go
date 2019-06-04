@@ -14,6 +14,12 @@ import (
 	"github.com/KibaFox/tls-usr-sessions/pki"
 )
 
+// Static username and password for demonstration.
+const (
+	username = "demo"
+	password = "test123" // in prod, store passwords with a password hash + salt
+)
+
 type AuthConfig struct {
 	AnchorsPEM string
 	CA         *x509.Certificate
@@ -44,6 +50,11 @@ func (s *Auth) Login(
 			"username and password are required")
 	}
 	log.Printf("Received: %v", req)
+
+	if req.Username != username || req.Password != password {
+		return nil, status.Error(codes.InvalidArgument,
+			"incorrect username or password")
+	}
 
 	cert, err := pki.SignCSR(
 		s.Config.Key, s.Config.CA, req.Csr, s.Config.UserTTL)

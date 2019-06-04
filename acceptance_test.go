@@ -69,7 +69,7 @@ var _ = Describe("Acceptance", func() {
 
 		resp, err := cli.Login(ctx, &pb.LoginRequest{
 			Username: "demo",
-			Password: "password123",
+			Password: "test123",
 			Csr:      csrPEM,
 		})
 
