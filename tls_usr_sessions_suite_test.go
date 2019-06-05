@@ -1,6 +1,10 @@
 package tls_usr_sessions_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"os/exec"
 	"regexp"
 	"testing"
@@ -10,6 +14,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/KibaFox/tls-usr-sessions/pb"
 )
@@ -87,11 +92,33 @@ func authCli() (cli pb.AuthClient, conn *grpc.ClientConn) {
 	return cli, conn
 }
 
-func protectedCli() (cli pb.ProtectedClient, conn *grpc.ClientConn) {
+func protectedCli(
+	key *ecdsa.PrivateKey, certPEM, anchorPEM string,
+) (cli pb.ProtectedClient, conn *grpc.ClientConn) {
 	Expect(addr).ShouldNot(BeEmpty())
 
-	var err error
-	conn, err = grpc.Dial(addr, grpc.WithInsecure())
+	byt, err := x509.MarshalECPrivateKey(key)
+	Expect(err).ToNot(HaveOccurred())
+	blk := &pem.Block{
+		Type:  "EC PRIVATE KEY",
+		Bytes: byt,
+	}
+	keyPEM := pem.EncodeToMemory(blk)
+
+	certificate, err := tls.X509KeyPair([]byte(certPEM), keyPEM)
+	Expect(err).ToNot(HaveOccurred())
+
+	certPool := x509.NewCertPool()
+	Expect(certPool.AppendCertsFromPEM([]byte(anchorPEM))).Should(BeTrue())
+
+	tlsCfg := &tls.Config{
+		ServerName:   "tls-sess-demo",
+		Certificates: []tls.Certificate{certificate},
+		RootCAs:      certPool,
+	}
+
+	creds := credentials.NewTLS(tlsCfg)
+	conn, err = grpc.Dial(addr, grpc.WithTransportCredentials(creds))
 	Expect(err).ToNot(HaveOccurred(), "could not connect to: %s", addr)
 
 	cli = pb.NewProtectedClient(conn)

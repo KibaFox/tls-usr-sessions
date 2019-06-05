@@ -87,11 +87,28 @@ var _ = Describe("Acceptance", func() {
 	})
 
 	It("should allow retrieval of the MOTD", func() {
-		cli, conn := protectedCli()
-		defer conn.Close()
+		By("Logging in to get a cert")
+		authCli, authConn := authCli()
+		defer authConn.Close()
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
+
+		cliKey, err := pki.GenerateKey()
+		Expect(err).ToNot(HaveOccurred())
+		csrPEM, err := pki.NewCSR(cliKey, "client")
+		Expect(err).ToNot(HaveOccurred())
+
+		authResp, err := authCli.Login(ctx, &pb.LoginRequest{
+			Username: "demo",
+			Password: "test123",
+			Csr:      csrPEM,
+		})
+		Expect(err).ToNot(HaveOccurred(), "problem logging in")
+
+		By("Attempting to get the MOTD")
+		cli, conn := protectedCli(cliKey, authResp.Cert, authResp.Anchors)
+		defer conn.Close()
 
 		resp, err := cli.MOTD(ctx, &empty.Empty{})
 		Expect(err).ToNot(HaveOccurred(), "problem getting MOTD")

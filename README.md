@@ -24,17 +24,15 @@ include this certificate into its trusted chain upon login.
 
 ![sequence diagram](./doc/sequence.svg)
 
-Not demonstrated:
+Note that this is a demonstration and not intended for production use.  For
+example, the login method is a placeholder for implementing your own.  You will
+want to store the password as a password hash such as argon2, scrypt, or bcrypt
+with a salt.  In addition, you can also use some other vector to verify the
+user, such as 2FA and/or email validation.
 
-- Endpoints not requiring client cert use certificates from Let's Encrypt
-- Out of band user validation (for example, requiring email or SMS verification
-    in addition to user+pass)
-- Host checking (client should notify the user when server CA changes)
-- Server CA lifecycle (renewal)
-- Device certificate lifecycle (renewal, revoke, fingerprint verify)
-- Secure password check via hash
-- Logout
-- User management
+Also, you will want to do your own audit of certificate use if you decide to
+implement this in your own project.  This demo uses a single key type for
+simplicity and does not address revocation via CRL or OCSP.
 
 ## Generating Protobuf
 
@@ -44,7 +42,8 @@ Follow instructions here: https://developers.google.com/protocol-buffers/docs/go
 
 To generate the Go protobuf code, run:
 
-    protoc -I=pb --go_out=plugins=grpc:pb session.proto
+    protoc -I=pb --go_out=plugins=grpc:pb auth.proto
+    protoc -I=pb --go_out=plugins=grpc:pb protected.proto
 
 ## Making the Demo
 
@@ -91,6 +90,8 @@ Then run the following to get the server's message-of-the-day:
 
     ./dist/tls-sess-demo motd
 
+By default, the certificates used will be stored in the `./certs` folder.
+
 ## Testing
 
 This project uses [Ginkgo](https://github.com/onsi/ginkgo) for testing.  To
@@ -112,11 +113,3 @@ linting which performs static code analysis checks.  To install, run:
 To run linters, run:
 
     make lint
-
-## TODO
-
-- Generate a random password to check at the server
-- Server generates a self-signed CA cert
-- Client generates a key and CSR
-- Server signs client CSR on login
-- Server endpoint requiring client cert
