@@ -28,11 +28,39 @@ Note that this is a demonstration and not intended for production use.  For
 example, the login method is a placeholder for implementing your own.  You will
 want to store the password as a password hash such as argon2, scrypt, or bcrypt
 with a salt.  In addition, you can also use some other vector to verify the
-user, such as 2FA and/or email validation.
+user, such as 2FA and/or email validation.  The login endpoint should also be
+protected with TLS using server verification.  You can accomplish this for free
+with certificates from [Let's Encrypt](https://letsencrypt.org/).
 
 Also, you will want to do your own audit of certificate use if you decide to
 implement this in your own project.  This demo uses a single key type for
 simplicity and does not address revocation via CRL or OCSP.
+
+### Advantages
+
+The advantage of using TLS mutual auth for the user session is similar to using
+token authentication. You can store entitlement information into the certificate
+you sign and give to the client.  For example, you can put information in the
+subject that identifies the client as an admin and since the certificate is
+signed by the server upon login, you can trust the client certificate without
+doing a database lookup that is usual for cookie-based authentication.
+
+TLS does not depend on HTTP which means you can use this method for more than
+protecting an HTTP API.  For example, you can use the certifiate to authenticate
+a user to a VPN such as IPsec/IKEv2 or OpenVPN.
+
+### Disadvantages
+
+While browsers support TLS mutual auth, they depend on the operating system's
+certificate manager.  You are likely to be limited in making the experience easy
+on the user as you may have to get the user to add the trusted CA certificate
+and the client certificate into the operating system's certificate manager.
+
+It appears that a separate port is needed for login that's configured without
+TLS mutual auth.  There doesn't appear to be a way to require mutual auth for
+come endpoints and not for others on the same port.  Opening multiple ports for
+this is unsual for a normal HTTP/S service and may throw a red flag with
+a security team.
 
 ## Generating Protobuf
 
